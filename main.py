@@ -11,7 +11,7 @@ TOKEN = '8740631074:AAHdTif9cw9BgLJ1lvuNEUTztYoH1zbxd6w'
 TU_CHAT_ID = '2107923970'
 PUERTO = 5000
 # IMPORTANTE: Cambia esto por tu URL de ngrok
-BASE_URL = 'https://d00f0d47fb1ffd1b-181-55-68-12.serveousercontent.com'
+BASE_URL = 'https://tracker-bot-abc123.onrender.com'
 
 app = Flask(__name__)
 bot = telebot.TeleBot(TOKEN, threaded=False)
